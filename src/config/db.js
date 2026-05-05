@@ -6,7 +6,16 @@ const connectDb = async () => {
     throw new Error("MONGODB_URI is not configured.");
   }
 
-  await mongoose.connect(mongoUri);
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
+
+  if (!global.__mongooseConnectionPromise) {
+    global.__mongooseConnectionPromise = mongoose.connect(mongoUri);
+  }
+
+  await global.__mongooseConnectionPromise;
+  return mongoose.connection;
 };
 
 module.exports = { connectDb };
